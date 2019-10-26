@@ -17,6 +17,9 @@ function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" |
 $orig_dct = @{ }
 function cool() {
     param([parameter(ValueFromPipeline)][string]$cmd)
+    if ($cmd -match "gin"){
+        continue;
+    }
     $value = (Get-Alias -Name $cmd).Definition
     $orig_dct[$cmd] = $value
 }
