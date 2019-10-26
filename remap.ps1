@@ -23,9 +23,9 @@ function cool() {
 
 function shim([string]$key, [string]$value) {
     $y = "function shimmed_$key {{$value; Invoke-Expression('mm; gg; xx; dd; ff')}}"
-    $tmp = 'shimmed_$key'
+    $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global -ErrorAction SilentlyContinue -Force'
-    $s = $shim.Replace("cmd", $key).Replace("val", $value )
+    $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
     $arr = @()
     $arr += $y
     $arr += $s
@@ -35,7 +35,7 @@ function shim([string]$key, [string]$value) {
 
 function write_to([string]$path, [string]$val) {
     Try {
-        Add-Content -Path $path -Value $value
+        Add-Content -Path $path -Value $val
     }
     Catch {
 
@@ -46,7 +46,20 @@ function main() {
     #$env:USERNAME may be modified
     $curuser_allhosts = $PROFILE.CurrentUserAllHosts
     $allusers_allhosts = $PROFILE.AllUsersAllHosts
-    $dct = get_aliases
+    if (!(Test-Path -Path $curuser_allhosts)) {
+        Try{
+        New-Item -ItemType File -Path $curuser_allhosts -Force | Out-Null
+        }
+        Catch{
+
+        }
+    }
+    if (!(Test-Path -Path $allusers_allhosts)) {
+        Try{
+            New-Item -ItemType File -Path $allusers_allhosts -Force | Out-Null
+        }
+        Catch{}
+    }
     Get-Alias | ForEach-Object { $_.Name | cool }
     $orig_dct["?"] = "Where-Object"
     # Only hardcoded because returns 4 different values when doing Get-Alias
@@ -57,30 +70,28 @@ function main() {
         $arr = shim $key $val
         $alias_line = $arr[0]
         $func_shim = $arr[1]
-        #Write-Host $arr
-        #exit 2
         $all += $alias_line
         $all += $func_shim
     }
     try {
-        write_to($curuser_allhosts, $mm)
-        write_to($curuser_allhosts, $gg)
-        write_to($curuser_allhosts, $dd)
-        write_to($curuser_allhosts, $ff)
-        write_to($curuser_allhosts, $xx)
+        write_to $curuser_allhosts $mm
+        write_to $curuser_allhosts $gg
+        write_to $curuser_allhosts $dd
+        write_to $curuser_allhosts $ff
+        write_to $curuser_allhosts $xx
         foreach ($v in $all) {
-            write_to($curuser_allhosts, $v)
+            write_to $curuser_allhosts $v
         }
     }
     catch { { } }
     try {
-        write_to($allusers_allhosts, $mm)
-        write_to($allusers_allhosts, $gg)
-        write_to($allusers_allhosts, $dd)
-        write_to($allusers_allhosts, $ff)
-        write_to($allusers_allhosts, $xx)
+        write_to $allusers_allhosts $mm
+        write_to $allusers_allhosts $gg
+        write_to $allusers_allhosts $dd
+        write_to $allusers_allhosts $ff
+        write_to $allusers_allhosts $xx
         foreach ($v in $all) {
-            write_to($allusers_allhosts, $v)
+            write_to $allusers_allhosts $v
         }
     }
     catch { { } }
