@@ -96,7 +96,7 @@ function write_to([string]$path, [string]$val) {
     Value that will be appended to path
     #>
     Try {
-        Add-Content -Path $path -Value $val
+        Add-Content -Path $path -Value $val -ErrorAction SilentlyContinue
     }
     Catch {
 
