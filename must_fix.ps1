@@ -14,7 +14,7 @@ function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -
 $orig_dct = @{ }
 function cool() {
     param([parameter(ValueFromPipeline)][string]$cmd)
-    if ($cmd -match "gin") {
+    if ($cmd -match "gin" -or $cmd -match "gtz") {
         # Not shimming as newGuid() uses gin alias and that breaks things
         return;
     }

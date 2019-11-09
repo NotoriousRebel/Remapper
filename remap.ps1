@@ -44,7 +44,7 @@ function create_map() {
     Name of alias that will serve as key
     #>
     param([parameter(ValueFromPipeline)][string]$alias)
-    if ($alias -match "gin") {
+    if ($cmd -match "gin" -or $cmd -match "gtz") {
         # Not shimming as newGuid() uses gin alias and that breaks things
         return;
     }
