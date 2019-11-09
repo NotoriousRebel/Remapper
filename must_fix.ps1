@@ -23,7 +23,7 @@ function cool() {
 }
 
 function shim([string]$key, [string]$value) {
-    $y = "function shimmed_$key {$value; Invoke-Expression(`"mm; gg; xx; dd; ff`")}"
+    $y = "function shimmed_$key {$value; Invoke-Expression(`"mm; xx; dd; ff`")}"
     $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)

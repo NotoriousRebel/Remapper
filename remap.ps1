@@ -69,7 +69,7 @@ function shim([string]$key, [string]$value) {
     First element: String that is definition of function that contains shimmed functions as well as definition for alias
     Second element: String that redefines the alias with the Value being our shimmed functon 
     #>
-    $y = "function shimmed_$key {$value; mm; gg; xx; dd; ff}"
+    $y = "function shimmed_$key {$value; mm; xx; dd; ff}"
     $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global -ErrorAction SilentlyContinue -Force'
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
