@@ -69,7 +69,7 @@ function shim([string]$key, [string]$value) {
     #>
     
     # If functon names have changed, new ones added, some are removed
-    # it should changed to $value;
+    # Should be changed right after "$value;"
     $func_def = "function shimmed_$key {$value; xx;dd;ff}"
     $func_name = "shimmed_$key"
     $shim = 'Set-Alias -Name alias -Value val -Option AllScope,Constant -Scope Global' + ' -ErrorAction SilentlyContinue -Force'
