@@ -1,4 +1,4 @@
-# ReMapper
+# Remapper
 
 PowerShell script that will shim aliases throughout PowerShell sessions through the use
 of PowerShell profiles.
