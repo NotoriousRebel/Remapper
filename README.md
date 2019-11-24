@@ -8,13 +8,13 @@ of PowerShell profiles.
 This is an interesting technique that red teamers can use to maintain persistence as well
 as achieve code execution.
 
-See more here [Abusing_Aliases]()
+See more here [Abusing_Aliases](https://notoriousrebel.space/2019-11-24-using-and-abusing-aliases-with-powershell/)
 
 ## How to Use?
 
-Edit the first few lines where functions are defined this is where 
+Edit the first few lines where functions are defined this is where
 you want to modify the functions. After that make sure
-with the shimmed_alias function after $value you put
+with the shimmed_alias function after \$value you put
 your functions if you modified their names or added
 or removed any. After that simply run the script.
 
